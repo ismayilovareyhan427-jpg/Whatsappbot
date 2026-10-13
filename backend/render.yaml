@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: restostock-api
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRIAL_DAYS
+        value: "3"
+      - key: AUTO_ORDER_DELAY_MIN
+        value: "5"
+      - key: AUTO_ORDER_INCLUDE_LOW
+        value: "false"
+      - key: ALERT_DEDUPE_MIN
+        value: "30"
+      - key: UNDO_MIN
+        value: "10"
+      - key: OWNER_REPORT_HOUR
+        value: "22"
+      - key: PARTNER_SHARE_PERCENT
+        value: "50"
+      - key: WHATSAPP_API_VERSION
+        value: v25.0
+      - key: WHATSAPP_TEMPLATE_LANG
+        value: az
+      - key: MONGO_URI
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: ADMIN_ALERT_PHONE
+        sync: false
+      - key: SUPPORT_CONTACT
+        sync: false
+      - key: REDIS_URL
+        sync: false

@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="az">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>RestoStock Admin</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            background: #f4f6f8;
+            color: #1a2233
+        }
+
+        header {
+            background: #0f172a;
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        header input {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 0;
+            min-width: 220px
+        }
+
+        button {
+            background: #10b981;
+            color: #fff;
+            border: 0;
+            border-radius: 6px;
+            padding: 7px 12px;
+            cursor: pointer
+        }
+
+        button.red {
+            background: #ef4444
+        }
+
+        button.gray {
+            background: #64748b
+        }
+
+        button.sm {
+            padding: 3px 8px;
+            font-size: 12px
+        }
+
+        main {
+            padding: 20px;
+            max-width: 1100px;
+            margin: auto
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px #0001
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #e5e9f0
+        }
+
+        .b {
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 12px;
+            color: #fff
+        }
+
+        .ACTIVE {
+            background: #10b981
+        }
+
+        .TRIAL {
+            background: #3b82f6
+        }
+
+        .EXPIRED,
+        .SUSPENDED {
+            background: #ef4444
+        }
+
+        .kpi {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .kpi div {
+            flex: 1;
+            min-width: 140px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 10px
+        }
+
+        .kpi b {
+            display: block;
+            font-size: 20px
+        }
+
+        label {
+            font-size: 13px;
+            margin-right: 8px
+        }
+
+        input,
+        select {
+            padding: 6px;
+            margin: 4px 8px 4px 0
+        }
+
+        pre {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            overflow: auto;
+            font-size: 13px;
+            white-space: pre-wrap
+        }
+
+        .cat {
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 8px
+        }
+
+        .it {
+            display: inline-block;
+            background: #e2e8f0;
+            border-radius: 6px;
+            padding: 2px 6px;
+            margin: 2px;
+            font-size: 13px
+        }
+
+        .it a {
+            color: #ef4444;
+            cursor: pointer;
+            margin-left: 4px;
+            font-weight: bold
+        }
+
+        .msg {
+            font-size: 13px;
+            color: #047857
+        }
+
+        .grp {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 8px;
+            margin: 8px 0
+        }
+
+        .grp a {
+            font-size: 13px;
+            word-break: break-all
+        }
+    </style>
+</head>
+
+<body>
+    <header><b>RestoStock Admin</b>
+        <input id="key" type="password" placeholder="ADMIN_API_KEY"><button onclick="saveKey()">Daxil ol</button>
+        <span id="err" style="color:#fca5a5"></span>
+    </header>
+    <main>
+        <div class="card">
+            <div class="kpi" id="kpi"></div>
+        </div>
+
+        <div class="card">
+            <h3>Restoranlar / Abunə</h3>
+            <div style="overflow-x:auto">
+                <table id="rest"></table>
+            </div>
+            <p>Tezliklə bitən: <span id="soon">-</span></p>
+        </div>
+
+        <div class="card">
+            <h3>Yeni restoran</h3>
+            <input id="cn" placeholder="Ad"><input id="cm" placeholder="Menecer nömrəsi (994...)">
+            <input id="cs" placeholder="Təchizatçı nömrəsi"><input id="co2" placeholder="Sahibkar nömrəsi">
+            <input id="ck" placeholder="Aşpaz nömrələri (vergüllə)" style="min-width:230px">
+            <input id="ca" placeholder="Əlavə menecer nömrələri (vergüllə)" style="min-width:230px">
+            <input id="cc" placeholder="Şəbəkə (istəyə bağlı)">
+            <input id="cf" type="number" placeholder="Aylıq (AZN)" style="width:110px" value="100">
+            <input id="cu" type="number" placeholder="Quraşdırma (AZN)" style="width:130px" value="150">
+            <button onclick="createR()">Yarat</button><span id="co" class="msg"></span>
+        </div>
+
+        <div class="card">
+            <h3>Restoranı redaktə et</h3>
+            <select id="er" class="rs" onchange="fill()"></select><br>
+            <input id="en" placeholder="Ad"><input id="em" placeholder="Menecer"><input id="es"
+                placeholder="Təchizatçı">
+            <input id="eo" placeholder="Sahibkar"><input id="ec" placeholder="Şəbəkə"><br>
+            <input id="ek" placeholder="Aşpaz nömrələri (vergüllə)" style="min-width:260px">
+            <input id="ea" placeholder="Əlavə menecer nömrələri (vergüllə)" style="min-width:260px"><br>
+
+            <div class="grp">
+                <b>👥 Menecer WhatsApp qrupu</b><br>
+                <input id="eg" placeholder="Qrup ID (avtomatik dolur və ya əl ilə yazın)" style="min-width:300px">
+                <button class="gray sm" onclick="saveGroup()">ID-ni yadda saxla</button>
+                <button class="sm" onclick="mkGroup()">Qrup yarat</button>
+                <button class="red sm" onclick="rmGroup()">Qrupu ayır</button><br>
+                <span style="font-size:13px">Dəvət linki: </span><a id="egl" target="_blank" rel="noopener">-</a>
+                <div style="font-size:12px;color:#64748b">Qrup yaradılandan sonra linki menecerə göndərin; o, linkə basıb
+                    qoşulmalıdır. Server tərəfdə WHATSAPP_GROUPS_ENABLED=true olmalıdır.</div>
+            </div>
+
+            <label>Aylıq<input id="ef" type="number" style="width:90px"></label>
+            <label>Quraşdırma<input id="eu" type="number" style="width:90px"></label>
+            <label><input type="checkbox" id="eauto"> Avto-sifariş</label>
+            <button onclick="saveR()">Yadda saxla</button>
+            <hr>
+            <label>Ödənişli tarix<input id="ep" type="date"></label>
+            <label>Sınaq bitir<input id="et" type="date"></label>
+            <label><input type="checkbox" id="eact"> Aktiv</label>
+            <button onclick="saveSub()">Abunəni yenilə</button>
+            <button class="red" onclick="delR()">Restoranı sil</button>
+            <span id="eo2" class="msg"></span>
+        </div>
+
+        <div class="card">
+            <h3>Ödəniş qeyd et</h3>
+            <select id="pr" class="rs" onchange="payList()"></select>
+            <select id="pt">
+                <option value="SUBSCRIPTION">Aylıq abunə</option>
+                <option value="SETUP">Quraşdırma</option>
+            </select>
+            <input id="pa" type="number" placeholder="Məbləğ (AZN)"><input id="pm" type="number" value="1" min="1"
+                style="width:70px" title="ay">
+            <button onclick="pay()">Yaz</button>
+            <pre id="pl">Ödəniş tarixçəsi burada görünəcək.</pre>
+        </div>
+
+        <div class="card">
+            <h3>Gəlir bölgüsü</h3>
+            <label>Başlanğıc<input id="rf" type="date"></label><label>Son<input id="rt" type="date"></label>
+            <label>Xərc (AZN)<input id="ex" type="number" value="0" style="width:90px"></label><button
+                onclick="rev()">Hesabla</button>
+            <div class="kpi" id="rv" style="margin-top:10px"></div>
+            <pre id="rm"></pre>
+        </div>
+
+        <div class="card">
+            <h3>Hesabat (xəbərdarlıqlar)</h3>
+            <select id="ar" class="rs"></select><label>Gün<input id="ad" type="number" value="30"
+                    style="width:70px"></label>
+            <button onclick="stats()">Göstər</button>
+            <pre id="ao">Ən çox bitən məhsullar, kateqoriyalar və orta bitmə tezliyi.</pre>
+        </div>
+
+        <div class="card">
+            <h3>Sərf (miqdar üzrə)</h3>
+            <select id="ur" class="rs"></select><label>Gün<input id="ud" type="number" value="30"
+                    style="width:70px"></label>
+            <button onclick="usage()">Göstər</button>
+            <pre
+                id="uo">Miqdar yalnız "Miqdar" təyin olunmuş məhsullar üçün və təhvil alınmış sifarişlərdə hesablanır.</pre>
+        </div>
+
+        <div class="card">
+            <h3>Menyu (kateqoriya / məhsul)</h3>
+            <select id="mr" class="rs" onchange="menu()"></select><button class="gray"
+                onclick="menu()">Yenilə</button><br>
+            <input id="mcn" placeholder="Yeni kateqoriya (max 24)" maxlength="24"><button onclick="addCat()">Kateqoriya
+                əlavə et</button><br>
+            <select id="mc"></select>
+            <input id="min" placeholder="Məhsul (max 24)" maxlength="24"><input id="miu" placeholder="Vahid"
+                style="width:70px">
+            <input id="miq" type="number" placeholder="Miqdar" style="width:80px"><button onclick="addItem()">Məhsul
+                əlavə et</button>
+            <span id="mo" class="msg"></span>
+            <div id="menu"></div>
+        </div>
+
+        <div class="card">
+            <h3>Menyu yüklə (CSV)</h3>
+            <select id="ir" class="rs"></select><br>
+            <textarea id="csv" rows="6" style="width:100%"
+                placeholder="Kateqoriya;Məhsul;Vahid;Miqdar&#10;Tərəvəz;Pomidor;Kq;20"></textarea>
+            <label><input type="checkbox" id="upd"> Mövcud məhsulları yenilə (vahid/miqdar)</label><br>
+            <button onclick="imp()">Yüklə</button>
+            <pre id="io"></pre>
+        </div>
+    </main>
+    <script>
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const list = s => String(s || "").split(",").map(x => x.trim()).filter(Boolean);
+        const day = d => d ? String(d).slice(0, 10) : "";
+        let K = sessionStorage.getItem("k") || ""; $("key").value = K;
+        let R = [];
+        const api = async (p, o = {}) => {
+            const r = await fetch("/api" + p, { ...o, headers: { "x-api-key": K, "Content-Type": "application/json" } });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(j.message || r.status);
+            return j;
+        };
+        const saveKey = () => { K = $("key").value; sessionStorage.setItem("k", K); load() };
+        const fail = e => { $("err").textContent = e.message };
+        const cur = () => R.find(r => r._id === $("er").value);
+
+        async function load(keep) {
+            try {
+                $("err").textContent = "";
+                const [b, rs] = await Promise.all([api("/billing"), api("/restaurants")]);
+                R = rs;
+                $("kpi").innerHTML = `<div>MRR<b>${b.mrr} AZN</b></div><div>Cəmi yığılan<b>${b.total_collected} AZN</b></div><div>Tezliklə bitən<b>${b.expiring_soon.length}</b></div><div>Quraşdırma ödənməyən<b>${b.setup_unpaid.length}</b></div>`;
+                $("soon").textContent = b.expiring_soon.length ? b.expiring_soon.join(", ") : "-";
+                $("rest").innerHTML = "<tr><th>Ad</th><th>Plan</th><th>Qalan gün</th><th>Aylıq</th><th>Quraşdırma</th></tr>" + b.restaurants.map(r => `<tr><td>${esc(r.name)}</td><td><span class="b ${esc(r.plan)}">${esc(r.plan)}</span></td><td>${r.days_left ?? "-"}</td><td>${r.monthly_fee}</td><td>${r.setup_paid ? "✔" : r.setup_fee + " AZN"}</td></tr>`).join("");
+                const sel = {}; document.querySelectorAll(".rs").forEach(s => sel[s.id] = s.value);
+                const opts = R.map(r => `<option value="${r._id}">${esc(r.name)}</option>`).join("");
+                document.querySelectorAll(".rs").forEach(s => { s.innerHTML = opts; if (sel[s.id] && R.some(r => r._id === sel[s.id])) s.value = sel[s.id]; });
+                fill(); payList(); if (R.length) menu();
+            } catch (e) { fail(e) }
+        }
+
+        async function createR() {
+            try {
+                const body = { name: $("cn").value, manager_phone: $("cm").value, monthly_fee: +$("cf").value || 100, setup_fee: +$("cu").value || 150 };
+                if ($("cs").value) body.supplier_phone = $("cs").value;
+                if ($("co2").value) body.owner_phone = $("co2").value;
+                if ($("cc").value) body.chain = $("cc").value;
+                if ($("ck").value) body.kitchen_phones = list($("ck").value);
+                if ($("ca").value) body.alert_phones = list($("ca").value);
+                const r = await api("/restaurants", { method: "POST", body: JSON.stringify(body) });
+                $("co").textContent = " ✔ " + r.name + " yaradıldı (3 günlük sınaq)"; load()
+            } catch (e) { fail(e) }
+        }
+
+        function fill() {
+            const r = cur(); if (!r) return;
+            $("en").value = r.name || ""; $("em").value = r.manager_phone || ""; $("es").value = r.supplier_phone || "";
+            $("eo").value = r.owner_phone || ""; $("ec").value = r.chain || "";
+            $("ek").value = (r.kitchen_phones || []).join(", "); $("ea").value = (r.alert_phones || []).join(", ");
+            $("ef").value = r.monthly_fee ?? ""; $("eu").value = r.setup_fee ?? "";
+            $("eauto").checked = !!r.auto_send_to_supplier; $("eact").checked = r.is_active !== false;
+            $("ep").value = day(r.paid_until); $("et").value = day(r.trial_ends_at);
+            // WhatsApp qrupu
+            $("eg").value = r.manager_group_id || "";
+            const link = $("egl");
+            if (r.manager_group_invite) { link.textContent = r.manager_group_invite; link.href = r.manager_group_invite; }
+            else { link.textContent = r.manager_group_request ? "(qrup yaradılır, webhook gözlənilir…)" : "-"; link.removeAttribute("href"); }
+        }
+        async function saveR() {
+            try {
+                const body = {
+                    name: $("en").value, manager_phone: $("em").value, supplier_phone: $("es").value, owner_phone: $("eo").value, chain: $("ec").value,
+                    kitchen_phones: list($("ek").value), alert_phones: list($("ea").value),
+                    monthly_fee: +$("ef").value, setup_fee: +$("eu").value, auto_send_to_supplier: $("eauto").checked,
+                    manager_group_id: $("eg").value
+                };
+                await api("/restaurants/" + $("er").value, { method: "PUT", body: JSON.stringify(body) });
+                $("eo2").textContent = " ✔ Yadda saxlanıldı"; load()
+            } catch (e) { fail(e) }
+        }
+        async function saveSub() {
+            try {
+                const body = { is_active: $("eact").checked, paid_until: $("ep").value || null, trial_ends_at: $("et").value || null };
+                await api(`/restaurants/${$("er").value}/subscription`, { method: "PATCH", body: JSON.stringify(body) });
+                $("eo2").textContent = " ✔ Abunə yeniləndi"; load()
+            } catch (e) { fail(e) }
+        }
+        async function delR() {
+            const r = cur(); if (!r || !confirm(`"${r.name}" silinsin? Menyu da silinəcək (tarixçə qalır).`)) return;
+            try { await api("/restaurants/" + r._id, { method: "DELETE" }); $("eo2").textContent = " 🗑️ Silindi"; load() } catch (e) { fail(e) }
+        }
+
+        // ---------- Menecer WhatsApp qrupu ----------
+        async function mkGroup() {
+            try {
+                const out = await api(`/restaurants/${$("er").value}/group`, { method: "POST", body: JSON.stringify({}) });
+                $("eo2").textContent = " ✔ " + (out.note || "Qrup yaradıldı");
+                load();
+            } catch (e) { fail(e) }
+        }
+        async function saveGroup() {
+            try {
+                const id = $("eg").value.trim();
+                if (!id) { $("eo2").textContent = " Qrup ID boşdur"; return }
+                await api(`/restaurants/${$("er").value}/group`, { method: "PUT", body: JSON.stringify({ group_id: id }) });
+                $("eo2").textContent = " ✔ Qrup ID saxlanıldı"; load();
+            } catch (e) { fail(e) }
+        }
+        async function rmGroup() {
+            const r = cur(); if (!r || !r.manager_group_id) return;
+            if (!confirm("Qrup bu restorandan ayrılsın? (WhatsApp qrupu özü silinmir)")) return;
+            try {
+                await api(`/restaurants/${r._id}/group`, { method: "DELETE" });
+                $("eo2").textContent = " 🗑️ Qrup ayrıldı"; load();
+            } catch (e) { fail(e) }
+        }
+
+        async function pay() {
+            try {
+                const body = { type: $("pt").value, months: +$("pm").value }; if ($("pa").value) body.amount = +$("pa").value;
+                await api(`/billing/restaurants/${$("pr").value}/payments`, { method: "POST", body: JSON.stringify(body) }); load()
+            } catch (e) { fail(e) }
+        }
+        async function payList() {
+            if (!$("pr").value) return;
+            try {
+                const p = await api(`/billing/restaurants/${$("pr").value}/payments`);
+                $("pl").textContent = p.length ? p.map(x => `${new Date(x.createdAt).toLocaleDateString("en-GB")} · ${x.type === "SETUP" ? "Quraşdırma" : "Abunə " + x.months + " ay"} · ${x.amount} AZN · ${x.method}`).join("\n") : "Hələ ödəniş yoxdur.";
+            } catch (e) { $("pl").textContent = e.message }
+        }
+        async function rev() {
+            try {
+                const q = new URLSearchParams({ expenses: $("ex").value || 0 });
+                if ($("rf").value) q.set("from", $("rf").value); if ($("rt").value) q.set("to", $("rt").value);
+                const r = await api("/billing/revenue?" + q);
+                $("rv").innerHTML = `<div>Cəmi<b>${r.total}</b></div><div>Quraşdırma<b>${r.setup}</b></div><div>Abunə<b>${r.subscription}</b></div><div>Xalis<b>${r.net}</b></div><div>Tərəfdaş (${r.partner_percent}%)<b>${r.partner_share}</b></div><div>Sizin pay<b>${r.owner_share}</b></div>`;
+                $("rm").textContent = r.by_month.map(m => `${m.month}: quraşdırma ${m.setup} + abunə ${m.subscription} = ${m.total}`).join("\n");
+            } catch (e) { fail(e) }
+        }
+        async function stats() {
+            try {
+                const s = await api(`/analytics/restaurant/${$("ar").value}?days=${$("ad").value || 30}`);
+                if (!s.total) { $("ao").textContent = `Son ${s.days} gündə xəbərdarlıq yoxdur.`; return }
+                $("ao").textContent =
+                    `Cəmi: ${s.total} (bitib: ${s.out}, azalıb: ${s.low})\n\nƏn çox:\n` +
+                    s.topItems.map((i, n) => `${n + 1}. ${i.name} — ${i.count} dəfə (bitib ${i.out}, azalıb ${i.low})`).join("\n") +
+                    `\n\nKateqoriya:\n` + s.byCategory.map(c => `• ${c.name}: ${c.count}`).join("\n") +
+                    (s.consumption.length ? `\n\nOrta bitmə tezliyi:\n` + s.consumption.map(c => `• ${c.name}: ${c.avg_days} gündən bir`).join("\n") : "");
+            } catch (e) { $("ao").textContent = e.message }
+        }
+        async function usage() {
+            try {
+                const u = await api(`/analytics/usage/${$("ur").value}?days=${$("ud").value || 30}`);
+                $("uo").textContent = u.items.length ? u.items.map((i, n) => `${n + 1}. ${i.name} — ${i.total_qty} ${i.unit} (~${i.per_day}/gün)`).join("\n") : "Bu müddətdə miqdarlı təhvil yoxdur."
+            } catch (e) { $("uo").textContent = e.message }
+        }
+
+        async function menu() {
+            const id = $("mr").value; if (!id) return;
+            try {
+                const cats = await api("/categories/restaurant/" + id);
+                $("mc").innerHTML = cats.map(c => `<option value="${c._id}">${esc(c.name)}</option>`).join("");
+                const parts = [];
+                for (const c of cats) {
+                    const items = await api("/items/category/" + c._id);
+                    parts.push(`<div class="cat"><b>${esc(c.name)}</b> <button class="sm red" onclick="delCat('${c._id}')">kateqoriyanı sil</button><br>` +
+                        (items.map(i => `<span class="it">${esc(i.name)} · ${esc(i.unit)}${i.default_qty ? " · " + i.default_qty : ""}<a onclick="delItem('${i._id}')">×</a></span>`).join("") || "<i>boşdur</i>") + "</div>");
+                }
+                $("menu").innerHTML = parts.join("") || "<i>Kateqoriya yoxdur</i>";
+            } catch (e) { $("menu").textContent = e.message }
+        }
+        async function addCat() {
+            try { await api("/categories", { method: "POST", body: JSON.stringify({ restaurant: $("mr").value, name: $("mcn").value }) }); $("mcn").value = ""; menu() } catch (e) { fail(e) }
+        }
+        async function addItem() {
+            try {
+                await api("/items", { method: "POST", body: JSON.stringify({ category: $("mc").value, name: $("min").value, unit: $("miu").value, default_qty: +$("miq").value || 0 }) });
+                $("min").value = ""; $("mo").textContent = " ✔ əlavə olundu"; menu()
+            } catch (e) { fail(e) }
+        }
+        async function delItem(id) { if (confirm("Məhsul silinsin?")) try { await api("/items/" + id, { method: "DELETE" }); menu() } catch (e) { fail(e) } }
+        async function delCat(id) { if (confirm("Kateqoriya və içindəki məhsullar silinsin?")) try { await api("/categories/" + id, { method: "DELETE" }); menu() } catch (e) { fail(e) } }
+
+        async function imp() {
+            try { $("io").textContent = JSON.stringify(await api(`/restaurants/${$("ir").value}/import`, { method: "POST", body: JSON.stringify({ csv: $("csv").value, update: $("upd").checked }) }), null, 2); menu() } catch (e) { $("io").textContent = e.message }
+        }
+        if (K) load();
+    </script>
+</body>
+
+</html>
