@@ -37,6 +37,7 @@ const {
   markDelivered,
   ordersSummary,
 } = require("./orderController");
+const { STOCK_VERBS, handleStockCommand } = require("./stockBot"); // >>> YENİ
 const { isDuplicate } = require("../utils/dedupe");
 const {
   getSession,
@@ -305,7 +306,7 @@ const HELP_MANAGER =
   "• Siyahı — satınalma siyahısı\n" +
   "• Menyu — özünüz məhsul statusu bildirin (və ya məhsulun adını yazın)\n" +
   "• Geri / Ləğv — menyuda geri qayıt / dayandır\n" +
-  "• Təhvil — mal gəldi, siyahını təmizlə\n" +
+  "• Təhvil — mal gəldi, siyahını təmizlə (qalığa da əlavə olunur)\n" +
   "• Təhvil Pomidor, Xiyar — yalnız bunlar gəldi (hissəli)\n" +
   "• Sifarişlər — son sifarişlərin statusu\n" +
   "• Hesabat — son 30 günün statistikası\n" +
@@ -320,9 +321,18 @@ const HELP_MANAGER =
   "• Aşpazlar — aşpaz nömrələri\n" +
   "• Aşpaz əlavə 0501234567 / Aşpaz sil 0501234567\n" +
   "• Təchizatçı 0501234567 / Təchizatçı sil\n" +
-  "• Kömək — bu menyu";
+  "\n📦 ANBAR / İSRAF\n" +
+  "• Giriş Məhsul | Miqdar — qalığa əlavə\n" +
+  "• Çıxış Məhsul | Miqdar — sərf\n" +
+  "• İsraf Məhsul | Miqdar | Səbəb — atılan ərzaq (tək \"İsraf\" = hesabat)\n" +
+  "• Say Məhsul | Miqdar — sayım (qalığı təyin et)\n" +
+  "• Qalıq — bütün qalıqlar\n" +
+  "\n💰 QİYMƏTLƏR\n" +
+  "• Qiymət Məhsul | Təchizatçı | Qiymət\n" +
+  "• Müqayisə / Müqayisə Məhsul — ən sərfəli təchizatçı\n" +
+  "\n• Kömək — bu menyu";
 const HELP_KITCHEN =
-  '📖 Məhsulun adını yazın (məs: "Pomidor") və AZALIB/BİTİB düyməsinə basın (və ya "azalib" / "bitib" yazın). Ya da "menyu" yazıb kateqoriya → məhsul seçin.\n"Geri" — əvvəlki addım, "Ləğv" — dayandır.\nSəhv basdınızsa, mesajın altındakı "↩️ Geri al" düyməsinə basın.\n"Siyahı" — hazırkı satınalma siyahısı.';
+  '📖 Məhsulun adını yazın (məs: "Pomidor") və AZALIB/BİTİB düyməsinə basın (və ya "azalib" / "bitib" yazın). Ya da "menyu" yazıb kateqoriya → məhsul seçin.\n"Geri" — əvvəlki addım, "Ləğv" — dayandır.\nSəhv basdınızsa, mesajın altındakı "↩️ Geri al" düyməsinə basın.\n"Siyahı" — hazırkı satınalma siyahısı.\nAtılan ərzaq: "İsraf Pomidor | 2 | Xarab". Sərf: "Çıxış Pomidor | 5".';
 const HELP_SUPPLIER =
   '📖 Sifarişə düymələrlə cavab verin. Mətnlə: "Qəbul", "Gecikmə", "İmtina". Çatdırılma vaxtı: "Vaxt 15:30".';
 const HELP_OWNER =
@@ -728,6 +738,16 @@ const handleMessage = async (message) => {
             ? HELP_OWNER
             : HELP_SUPPLIER,
     );
+  }
+
+  // ---------- >>> YENİ: ANBAR / İSRAF / QİYMƏT əmrləri ----------
+  // Giriş, Çıxış, İsraf, Say, Qalıq (menecer; aşpaz yalnız İsraf və Çıxış), Qiymət, Müqayisə (menecer)
+  if (STOCK_VERBS.includes(verb) && !actionId) {
+    const handled = await handleStockCommand(from, restaurant, verb, args, {
+      isManager,
+      isKitchen,
+    });
+    if (handled !== null) return handled;
   }
 
   // ---------- MENECER ----------

@@ -14,6 +14,7 @@ const errorHandler = require("./middleware/errorHandler");
 const adminAuth = require("./middleware/adminAuth");
 const requestLogger = require("./middleware/requestLogger");
 const logger = require("./utils/logger");
+const kv = require("./utils/redis");
 const { startScheduler } = require("./utils/scheduler");
 
 [
@@ -28,6 +29,8 @@ const { startScheduler } = require("./utils/scheduler");
 ].forEach((k) => !process.env[k] && logger.warn(`${k} təyin olunmayıb`));
 if (process.env.NODE_ENV !== "production")
   logger.warn("NODE_ENV=production deyil (production-da təyin edin)");
+if (process.env.NODE_ENV === "production" && !process.env.REDIS_URL)
+  logger.warn("REDIS_URL yoxdur: sessiyalar yaddaşdadır, restart-da itir");
 
 const app = express();
 app.set("trust proxy", 1); // Render / nginx arxasında düzgün IP
@@ -82,14 +85,20 @@ app.use("/api/items", admin, require("./routers/items"));
 app.use("/api/analytics", admin, require("./routers/analytics"));
 app.use("/api/billing", admin, require("./routers/billing"));
 app.use("/api/logs", admin, require("./routers/logs"));
+// 1) məhsul sərfiyyatı / israf / qalıq  2) təchizatçı qiymət müqayisəsi
+app.use("/api/stock", admin, require("./routers/stock"));
+app.use("/api/prices", admin, require("./routers/prices"));
 app.use("/api/whatsapp", require("./routers/whatsapp")); // webhook: Meta imzası ilə qorunur
 
-// Docker/Render healthcheck + uptime monitor üçün: DB bağlı deyilsə 503
-app.get("/health", (req, res) => {
+// Docker/Render healthcheck + uptime monitor üçün: DB bağlı deyilsə 503.
+// Redis düşərsə bot yaddaş rejimində işləməyə davam edir, ona görə 503 yox, "redis" sahəsində göstərilir.
+app.get("/health", async (req, res) => {
   const db = mongoose.connection.readyState === 1;
+  const redis = await kv.ping();
   res.status(db ? 200 : 503).json({
     status: db ? "ok" : "degraded",
     db,
+    redis: redis.enabled ? (redis.ok ? "ok" : "down") : "disabled",
     uptime: Math.round(process.uptime()),
   });
 });
@@ -110,6 +119,7 @@ const start = async () => {
     logger.info(`${sig} alındı, server bağlanır`);
     server.close(async () => {
       await mongoose.connection.close().catch(() => {});
+      await kv.quit();
       process.exit(0);
     });
     setTimeout(() => process.exit(1), 10000).unref();

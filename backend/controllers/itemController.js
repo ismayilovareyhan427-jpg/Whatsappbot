@@ -3,6 +3,7 @@ const Category = require("../models/Category");
 const AlertHistory = require("../models/AlertHistory");
 const { notifyManagersButtons, notifyManagersText } = require("./alerts");
 const { tplName } = require("./notifier");
+const { recordDelivery } = require("./stockController"); // >>> YENİ
 const { nowBaku, normalizeText } = require("../utils/text");
 
 const getItemsByCategory = (categoryId) =>
@@ -197,6 +198,8 @@ const resetShoppingList = async (
       status: "IN_STOCK",
     })),
   );
+  // >>> YENİ: təhvil alınan məhsulların adi miqdarı (default_qty) qalığa GİRİŞ kimi yazılır
+  await recordDelivery(restaurantId, items, byPhone);
   return { count: items.length, notFound };
 };
 

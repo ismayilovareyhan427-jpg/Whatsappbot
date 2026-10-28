@@ -26,6 +26,10 @@ const itemSchema = new mongoose.Schema(
     },
     // Adi sifariş miqdarı (məs. Pomidor 20 Kq). Sifarişə düşür və "nə qədər işlənir" analitikasının əsasıdır.
     default_qty: { type: Number, default: 0, min: 0 },
+
+    // >>> YENİ: cari anbar qalığı (StockMovement ilə yenilənir: giriş +, çıxış/israf -, sayım = təyin)
+    stock_qty: { type: Number, default: 0, min: 0 },
+
     status: {
       type: String,
       enum: ["IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"],

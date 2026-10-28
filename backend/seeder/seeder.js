@@ -1,8 +1,16 @@
 // node seeder/seeder.js   -> data yüklə     |   node seeder/seeder.js -d  -> təmizlə
+// DİQQƏT: bütün kolleksiyaları silir. Production-da yalnız ALLOW_SEED=true ilə işləyir.
 const path = require("path");
 require("dotenv").config({
   path: path.join(__dirname, "..", "config", "config.env"),
 });
+
+if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED !== "true") {
+  console.error(
+    "❌ Production-da seeder bloklanıb (canlı data silinməsin). Həqiqətən lazımdırsa ALLOW_SEED=true təyin edin.",
+  );
+  process.exit(1);
+}
 
 const connectDB = require("../config/dbConnect");
 const Restaurant = require("../models/Restaurant");
@@ -12,6 +20,8 @@ const AlertHistory = require("../models/AlertHistory");
 const Order = require("../models/Order");
 const Payment = require("../models/Payment");
 const ActiveBranch = require("../models/ActiveBranch");
+const StockMovement = require("../models/StockMovement");
+const SupplierPrice = require("../models/SupplierPrice");
 const { restaurant, catalog } = require("./data");
 
 const clear = async () => {
@@ -23,6 +33,8 @@ const clear = async () => {
     Order.deleteMany(),
     Payment.deleteMany(),
     ActiveBranch.deleteMany(),
+    StockMovement.deleteMany(),
+    SupplierPrice.deleteMany(),
   ]);
 };
 
@@ -43,6 +55,7 @@ const run = async () => {
           name,
           unit,
           default_qty: qty || 0,
+          stock_qty: qty || 0, // demo: Çıxış/İsraf dərhal test oluna bilsin
         })),
       );
     }
